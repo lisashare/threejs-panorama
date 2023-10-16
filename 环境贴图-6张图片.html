@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>环境贴图-6张图片</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./node_modules/three/build/three.module.js",
+        "three/addons/": "./node_modules/three/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from 'three' 
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+    import { scene, renderer, width, height } from './common/frame.js'
+
+    // 设置cube纹理加载器 x轴正方向，负方向贴图 p:正positive n:负negative
+    const cubeTextureLoader = new THREE.CubeTextureLoader()
+    const envMapTexture = cubeTextureLoader.setPath('assets/panorama/').load([
+      'pos-x.jpg',
+      'neg-x.jpg',
+      'pos-y.jpg',
+      'neg-y.jpg',
+      'pos-z.jpg',
+      'neg-z.jpg',
+    ])
+
+    var geometry = new THREE.SphereGeometry(1, 50, 50)
+    var material = new THREE.MeshStandardMaterial({
+      metalness: 0.7, // 金属
+      roughness: 0.1, // 粗糙 0.1比较光滑
+    })
+    var mesh = new THREE.Mesh(geometry, material)
+    scene.add(mesh)
+
+    // 设置透视投影相机预览全景图
+    var camera = new THREE.PerspectiveCamera(60, width / height, 1, 1500)
+    camera.position.set(2, 2, 10) // 设置相机位置
+    camera.lookAt(new THREE.Vector3(0, 0, 0)) //坐标原点
+
+    // 给场景添加背景
+    scene.background = envMapTexture 
+    // // 给场景所有的物体添加默认的环境贴图
+    scene.environment = envMapTexture
+
+    function render() {
+      renderer.render(scene, camera)
+      requestAnimationFrame(render)
+    }
+    render()
+    // 旋转相机预览全景图的不同位置
+    var controls = new OrbitControls(camera, renderer.domElement)
+    controls.enablePan = false // 禁止右键拖拽
+    controls.enableZoom = false // 禁止缩放
+  </script>
+</body>
+</html>

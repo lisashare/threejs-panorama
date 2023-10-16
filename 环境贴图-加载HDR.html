@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>环境贴图-加载HDR</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./node_modules/three/build/three.module.js",
+        "three/addons/": "./node_modules/three/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from 'three' 
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+    import { RGBELoader } from 'three/addons/loaders/RGBELoader.js'
+    import { scene, renderer, width, height } from './common/frame.js'
+
+    const rgbaLoader = new RGBELoader()
+    rgbaLoader.loadAsync('assets/001.hdr').then((texture) => {
+      // 经纬度映射贴图
+      texture.mapping = THREE.EquirectangularReflectionMapping
+      // 给场景添加背景
+      // scene.background = texture 
+      // // 给场景所有的物体添加默认的环境贴图
+      // scene.environment = texture
+    })
+    var geometry = new THREE.SphereGeometry(1, 50, 50)
+    var material = new THREE.MeshStandardMaterial({
+      metalness: 0.7, // 金属
+      roughness: 0.1, // 粗糙 0.1比较光滑
+    })
+    var mesh = new THREE.Mesh(geometry, material)
+    scene.add(mesh)
+
+    // 设置透视投影相机预览全景图
+    var camera = new THREE.PerspectiveCamera(60, width / height, 1, 1500)
+    camera.position.set(2, 2, 10) // 设置相机位置
+    camera.lookAt(new THREE.Vector3(0, 0, 0)) //坐标原点
+
+    function render() {
+      renderer.render(scene, camera)
+      requestAnimationFrame(render)
+    }
+    render()
+    // 旋转相机预览全景图的不同位置
+    var controls = new OrbitControls(camera, renderer.domElement)
+    controls.enablePan = false // 禁止右键拖拽
+    controls.enableZoom = false // 禁止缩放
+  </script>
+</body>
+</html>

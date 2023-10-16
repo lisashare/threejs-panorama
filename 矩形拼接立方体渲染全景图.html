@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>矩形拼接立方体渲染全景图</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./node_modules/three/build/three.module.js",
+        "three/addons/": "./node_modules/three/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from 'three' 
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+    import { scene, renderer, width, height } from './common/frame.js'
+    // 6个矩形平面Mesh构成一个立方体空间
+    
+    var L = 109; // 立方体空间尺寸
+    var textureLoader = new THREE.TextureLoader(); // TextureLoader创建一个纹理加载器对象
+    var arr = ['front','back','up','down','left','right']; // 六个面全景贴图的名称
+    var arrCopy = ['pos-x','neg-x','pos-y','neg-y','pos-z','neg-z']; // 没啥用，懒，命名不想改了
+    // 批量创建立方体空间的六个平面Mesh，并设置对应的贴图
+    arr.forEach(function (name) {
+      var geometry = new THREE.PlaneGeometry(L, L);// 默认在XOY平面上
+      
+      var material = new THREE.MeshBasicMaterial({
+        // map: textureLoader.load('assets/panorama/' + name + '.jpg')
+        map: textureLoader.load('assets/panorama/' + arrCopy[arr.indexOf(name)] + '.jpg')
+      })
+      var mesh = new THREE.Mesh(geometry, material);
+      scene.add(mesh);
+      // 设置矩形Mesh角度和位置，分别于立方体前后上下左右六个面重合同时保证矩形Mesh可见面朝内
+      if(name=='front')mesh.position.z = -L/2;
+      if(name=='back'){mesh.position.z = L/2;mesh.rotateY(Math.PI);}
+      if(name=='up' ){mesh.rotateX(Math.PI / 2);mesh.position.y = L/2;}
+      if(name=='down'){mesh.rotateX(-Math.PI / 2);mesh.position.y = -L/2;}
+      if(name=='left'){mesh.rotateY(Math.PI / 2);mesh.position.x = -L/2;}
+      if(name=='right'){mesh.rotateY(-Math.PI / 2);mesh.position.x = L/2;}
+    })
+
+    // 设置透视投影相机预览全景图
+    var camera = new THREE.PerspectiveCamera(60, width / height, 1, 1500)
+    camera.position.set(0, 0, -1) // 设置相机位置
+    camera.lookAt(new THREE.Vector3(0, 0, 0)) //坐标原点
+
+    function render() {
+      renderer.render(scene, camera)
+      requestAnimationFrame(render)
+    }
+    render()
+    // 旋转相机预览全景图的不同位置
+    var controls = new OrbitControls(camera, renderer.domElement)
+    controls.enablePan = false // 禁止右键拖拽
+    controls.enableZoom = false // 禁止缩放
+  </script>
+</body>
+</html>

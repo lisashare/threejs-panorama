@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>球体渲染全景图</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./node_modules/three/build/three.module.js",
+        "three/addons/": "./node_modules/three/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from 'three' 
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+    import { scene, renderer, width, height } from './common/frame.js'
+    // 透视投影相机 相机位置在球内部观察 贴图背面可见
+
+    var geometry = new THREE.SphereGeometry(100, 50, 50)
+    var textureLoader = new THREE.TextureLoader() // 贴图加载器
+    var material = new THREE.MeshBasicMaterial({
+      map: textureLoader.load('assets/panorama.jpg'),
+      side: THREE.BackSide // 默认前面可见，设置为背面可见即可
+    })
+    var mesh = new THREE.Mesh(geometry, material)
+    scene.add(mesh)
+
+    // 设置透视投影相机预览全景图
+    var camera = new THREE.PerspectiveCamera(60, width / height, 1, 1500)
+    camera.position.set(0, 0, -1) // 设置相机位置
+    camera.lookAt(new THREE.Vector3(0, 0, 0)) //坐标原点
+
+    function render() {
+      renderer.render(scene, camera)
+      requestAnimationFrame(render)
+    }
+    render()
+    // 旋转相机预览全景图的不同位置
+    var controls = new OrbitControls(camera, renderer.domElement)
+    controls.enablePan = false // 禁止右键拖拽
+    controls.enableZoom = false // 禁止缩放
+  </script>
+</body>
+</html>
